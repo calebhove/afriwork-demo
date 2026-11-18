@@ -357,3 +357,32 @@ dialog::backdrop { background: #1e303766; backdrop-filter: blur(5px); }
 @media (prefers-reduced-motion:reduce) {
   .dock { transition:none !important; }
 }
+
+
+/* iPhone scrolling performance: avoid expensive live backdrop repaints. */
+@media (max-width:760px) {
+  .header,.primary-tabs,.top-tabs,.dock {
+    -webkit-backdrop-filter:none !important;
+    backdrop-filter:none !important;
+    background-color:rgba(255,255,255,.98);
+  }
+  .header {
+    transition:transform 160ms ease-out !important;
+    will-change:auto;
+  }
+  body.nav-collapsed .header {
+    transform:translate3d(0,-100%,0);
+    pointer-events:none;
+  }
+  .primary-tabs,.top-tabs {
+    transition:none !important;
+  }
+  .dock {
+    transition:transform 160ms ease-out, border-radius 160ms ease-out !important;
+  }
+  .content { touch-action:auto; }
+  .post-photos { touch-action:pan-x pan-y; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .header,.dock { transition:none !important; }
+}
