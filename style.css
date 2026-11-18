@@ -463,3 +463,42 @@ dialog::backdrop { background: #1e303766; backdrop-filter: blur(5px); }
   .top-tabs button.active { border-bottom-color:var(--orange); }
   .country-field .country-arrow { flex-basis:52px; }
 }
+
+/* Country picker is a simple button, not a nested native select. */
+.country-field button.country-arrow {
+  display:flex !important;
+  align-items:center;
+  justify-content:center;
+  flex:0 0 52px;
+  width:52px;
+  min-width:52px;
+  padding:0;
+  background:#fff !important;
+  background-image:none !important;
+  border:1px solid var(--line);
+  border-radius:12px;
+  color:var(--ink);
+  cursor:pointer;
+  appearance:none;
+  -webkit-appearance:none;
+}
+.country-field button.country-arrow svg { display:block; pointer-events:none; }
+.country-options {
+  display:grid;
+  gap:4px;
+  margin-top:12px;
+  max-height:min(55vh,440px);
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.country-option {
+  display:block;
+  width:100%;
+  min-height:44px;
+  padding:10px 12px;
+  border-radius:9px;
+  text-align:left;
+  font-size:14px;
+}
+.country-option:hover,.country-option:focus-visible { background:var(--paper); }
+.country-option[hidden] { display:none !important; }
