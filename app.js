@@ -204,9 +204,9 @@ function previewPostPhotos(input) {
       frame.append(count);
       frame.append(image);
       const position = {horizontal: '50', vertical: '50'};
-      const controls = document.createElement('div');
+      const controls = document.createElement('details');
       controls.className = 'composer-crop';
-      const title = document.createElement('strong');
+      const title = document.createElement('summary');
       title.textContent = 'Adjust crop';
       controls.append(title);
       for (const axis of Object.keys(position)) {
@@ -878,9 +878,9 @@ function openPostComposer(media) {
     ${act('postmedia','<strong>GIF</strong>','composer-tool','gif')}
   ` : '';
   modal('New post', `<form id="postform">
-    <div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong></div>
+    <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong></div>
     <label class="sr" for="body">Post text</label>
-    <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea>
+    <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea></div>
     ${state.demo ? `<input id="postphotos" type="file" accept="image/*" multiple hidden>
     <div class="post-photo-preview" hidden>
       <div class="composer-gallery-nav" hidden>
