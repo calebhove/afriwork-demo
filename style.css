@@ -543,3 +543,18 @@ dialog { position: fixed; inset: 0; margin: auto; max-height: 88dvh; overflow: a
 .post-composer #body { min-height: 100px; }
 .post-composer .error:empty { display: none; }
 .composer-footer { padding-top: 12px; }
+
+.post-composer #body { min-height: 155px; border: 0; padding: 10px 2px; resize: vertical; }
+.composer-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.composer-tool, .composer-stickers summary { min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border-radius: 10px; color: var(--brand-text); cursor: pointer; }
+.composer-stickers > div { display: flex; flex-wrap: wrap; }
+.composer-gallery-nav:not([hidden]) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
+.post-photo-preview .post-photos { touch-action: pan-x pan-y; }
+@media (max-width: 760px) {
+  dialog.post-composer { inset: 0; width: 100%; height: 100%; max-height: 100dvh; max-width: none; border-radius: 0; margin: 0; }
+  .post-composer #body { min-height: 32dvh; }
+  .composer-footer { position: sticky; bottom: -20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: var(--white); border-top: 1px solid var(--line); }
+}
+
+.post-photos { min-width: 0; max-width: 100%; }
+.post-photos > img { min-width: 0; }
