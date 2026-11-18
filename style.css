@@ -386,3 +386,25 @@ dialog::backdrop { background: #1e303766; backdrop-filter: blur(5px); }
 @media (prefers-reduced-motion:reduce) {
   .header,.dock { transition:none !important; }
 }
+
+/* Keep feed filters in the document flow; no floating overlap on iPhone. */
+@media (max-width:760px) {
+  .top-tabs {
+    position:relative !important;
+    top:auto !important;
+    z-index:1;
+    margin:20px 0 20px;
+    padding:0 0 2px;
+    min-height:48px;
+    align-items:center;
+    gap:24px;
+    box-sizing:border-box;
+    background:#fff;
+    border-bottom:1px solid var(--line);
+  }
+  body.nav-collapsed .top-tabs { top:auto !important; }
+  .top-tabs button { flex-shrink:0; }
+  .primary-tabs.section-nav-hidden { display:none !important; }
+  .primary-tabs { position:relative !important; top:auto !important; }
+  body.nav-collapsed .primary-tabs { top:auto !important; }
+}
