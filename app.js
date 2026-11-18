@@ -309,6 +309,33 @@ window.addEventListener('scroll',()=>{
   }
 },{passive:true});
 
+// iOS Safari fallback: react to vertical finger movement even when scroll events are delayed.
+let mobileTouchY=null, mobileTouchX=null, mobileTouchDirection=0;
+document.addEventListener('touchstart',e=>{
+  if(e.touches.length!==1){mobileTouchY=null;return;}
+  mobileTouchY=e.touches[0].clientY;
+  mobileTouchX=e.touches[0].clientX;
+  mobileTouchDirection=0;
+},{passive:true});
+document.addEventListener('touchmove',e=>{
+  if(mobileTouchY===null||state.screen!=='app'||innerWidth>760||$('#modal').open)return;
+  if(e.touches.length!==1)return;
+  const y=e.touches[0].clientY,x=e.touches[0].clientX;
+  const dy=y-mobileTouchY,dx=x-mobileTouchX;
+  if(Math.abs(dx)>Math.abs(dy)*1.2)return;
+  if(Math.abs(dy)<16)return;
+  if(window.scrollY>55){
+    const dir=Math.sign(dy);
+    if(dir!==mobileTouchDirection){
+      document.body.classList.toggle('nav-collapsed',dir<0);
+      mobileTouchDirection=dir;
+    }
+  }else document.body.classList.remove('nav-collapsed');
+  mobileTouchY=y;mobileTouchX=x;
+},{passive:true});
+document.addEventListener('touchend',()=>{mobileTouchY=null;},{passive:true});
+document.addEventListener('touchcancel',()=>{mobileTouchY=null;},{passive:true});
+
 // Gesture ownership: post galleries always own horizontal drags.
 // Outside galleries, horizontal swipes switch feed categories without hijacking vertical scroll.
 let feedGesture=null;
