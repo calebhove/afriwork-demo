@@ -575,3 +575,16 @@ dialog.post-composer { padding: 16px; }
   .composer-stickers > div { position: absolute; right: 10px; bottom: 58px; padding: 4px; background: white; border: 1px solid var(--line); border-radius: 10px; z-index: 1; }
   .composer-stickers > div .composer-tool { min-width: 36px; justify-content: center; }
 }
+
+.card.post { display: grid; gap: 12px; min-width: 0; padding: 14px 14px 8px; }
+.post .post-caption { margin: 0; line-height: 1.5; }
+.post > .post-photos { margin: 0; }
+.post > .actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px; padding-top: 3px; }
+.post > .actions button { justify-content: center; gap: 4px; padding: 0 2px; min-height: 44px; white-space: nowrap; }
+.post > .actions .icon { flex: 0 0 16px; width: 16px; height: 16px; }
+.composer-publish { gap: 6px; padding-inline: 14px; }
+.composer-publish .icon { width: 16px; height: 16px; flex: none; }
+@media (max-width: 360px) {
+  .card.post { padding-inline: 10px; gap: 10px; }
+  .post > .actions button { font-size: 11px; }
+}
