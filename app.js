@@ -195,7 +195,26 @@ function previewPostPhotos(input) {
       const image = document.createElement('img');
       image.src = url;
       image.alt = 'Photo ' + (index + 1) + ' preview';
-      preview.querySelector('.post-photos').append(image);
+      const frame = document.createElement('div');
+      frame.style.cssText = 'flex:0 0 100%;min-width:0;scroll-snap-align:start';
+      frame.append(image);
+      const position = {horizontal: '50', vertical: '50'};
+      for (const axis of Object.keys(position)) {
+        const label = document.createElement('label');
+        label.textContent = axis === 'horizontal' ? 'Left / right' : 'Up / down';
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '0';
+        slider.max = '100';
+        slider.value = '50';
+        slider.addEventListener('input', () => {
+          position[axis] = slider.value;
+          image.style.objectPosition = position.horizontal + '% ' + position.vertical + '%';
+        });
+        label.append(slider);
+        frame.append(label);
+      }
+      preview.querySelector('.post-photos').append(frame);
     }
     preview.hidden = !files.length;
   } catch (failure) {
@@ -420,7 +439,7 @@ async function recordPostShare(postId) {
   updatePostCount(postId, 'shares', rows?.length || 0);
 }
 
-function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header><p>${esc(p.body)}</p>${state.demo&&p.photos?.length?`<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}">`).join('')}</div>`:''}${postActions(p)}</article>`}
+function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header><p>${esc(p.body)}</p>${state.demo&&p.photos?.length?`<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}" style="object-position:${esc(p.photoPositions?.[index] || 'center')}">`).join('')}</div>`:''}${postActions(p)}</article>`}
 function filteredJobs(){return state.jobs.filter(j=>j.status==='Open'&&(!state.onlySaved||state.saved.includes(j.id))&&(!state.query||[j.title,j.company_name,j.category,j.description,j.city].join(' ').toLowerCase().includes(state.query.toLowerCase()))&&(!state.filter.category||j.category===state.filter.category)&&(!state.filter.arrangement||j.arrangement===state.filter.arrangement)&&(!state.filter.type||j.type===state.filter.type))}
 const jobCurrencies = {
   USD: 'US$', ZAR: 'R', NGN: '₦', ZWG: 'ZiG', BWP: 'P', ZMW: 'ZK',
@@ -846,7 +865,7 @@ if(a==='policy')return modal(v,policies[v]);if(a==='screen'){state.screen=v;retu
 if(a==='post'){
   const photos=v==='camera'||v==='photos';
   return modal(photos?'Create a photo post':'Write a post',`<form id="postform">
-    ${photos?(state.demo?`<label for="postphotos">${v==='camera'?'Open camera':'Choose up to 10 photos'}</label><input id="postphotos" type="file" accept="image/*" ${v==='camera'?'capture="environment"':'multiple'} required><div class="post-photo-preview" hidden><small>Photos are center-cropped to fill the square. Swipe to preview each photo.</small><div class="post-photos"></div></div><p class="muted">Photos stay in this preview session.</p>`:'<p class="notice">Photo posting is available in browser preview while shared photo storage is being built.</p>'):''}
+    ${photos?(state.demo?`<label for="postphotos">${v==='camera'?'Open camera':'Choose up to 10 photos'}</label><input id="postphotos" type="file" accept="image/*" ${v==='camera'?'capture="environment"':'multiple'} required><div class="post-photo-preview" hidden><small>Adjust the framing before posting. Swipe to edit each photo.</small><div class="post-photos"></div></div><p class="muted">Photos stay in this preview session.</p>`:'<p class="notice">Photo posting is available in browser preview while shared photo storage is being built.</p>'):''}
     <label for="body">${photos?'Caption':'Your update'}</label><textarea id="body" name="body" maxlength="5000" ${photos?'':'required'}></textarea>
     <p class="error" role="alert"></p><button class="btn wide" ${photos&&!state.demo?'disabled':''}>Publish post</button></form>`);
 }
@@ -910,7 +929,10 @@ if(form.id==='authform'){if(!connected)throw new Error('Connect Supabase first o
 const p=(await db('profiles','?id=eq.'+state.user.id))[0];state.profile=p;if(p?.onboarding_complete){state.screen='app';await load()}else{state.draft={...state.draft,...p,skills:p?.skills||[]};state.screen='onboarding'}render();return}
 if(form.id==='onboardform'){captureOnboard(fd);if(state.onboard<onboardingSteps().length-1){state.onboard++;return render()}const p={...state.draft,id:state.user.id,onboarding_complete:true,skills:Array.isArray(state.draft.skills)?state.draft.skills:[]};delete p.identity_confirmed;delete p.premium;delete p.created_at;if(!state.demo)await db('profiles','?id=eq.'+state.user.id,'PATCH',p);state.profile=p;state.screen='app';await refresh();return}
 if(form.id==='searchform'||form.id==='jobsearch'){state.query=d.query.trim();state.route='jobs'}else if(form.id==='filterform'){state.filter=d;closeModal()}else if(form.id==='postform'){const p={id:id(),author_id:state.user.id,author_name:state.profile.full_name,is_company:state.profile.hirer_type==='company'&&state.profile.role==='Hire Talent',body:d.body.trim(),created_at:new Date().toISOString()};const files=postPhotoFiles(form.querySelector?.('#postphotos'));
-if(files.length&&state.demo)p.photos=files.map(file=>URL.createObjectURL(file));
+if (files.length && state.demo) {
+  p.photos = files.map(file => URL.createObjectURL(file));
+  p.photoPositions = Array.from(form.querySelectorAll('.post-photo-preview img'), image => image.style.objectPosition || 'center');
+}
 if(!p.body&&!p.photos?.length)throw new Error('Write something or add a photo.');await mutate('posts','','POST',p);state.posts.unshift(p);state.route='feed';state.feedTab='For You';closeModal();toast(state.demo?'Post added to this preview session.':'Post published.')}else if(form.id==='profileform'){if(d.website&&safeURL(d.website)==='#')throw new Error('Use a valid https:// or http:// link.');const patch={...d};if(typeof d.skills==='string')patch.skills=JSON.parse(d.skills);await mutate('profiles','?id=eq.'+state.user.id,'PATCH',patch);Object.assign(state.profile,patch);closeModal();toast('Profile updated.')}else if(form.id==='jobform'){if(sensitive.includes(d.category))throw new Error('This category requires identity review, which is not available yet.');if(d.description.trim().length<30)throw new Error('Add a description of at least 30 characters.');delete d.rules;const currency=d.currency;delete d.currency;const amount=d.salary?.trim()||'';d.salary=amount&&Object.hasOwn(jobCurrencies,currency)?currency+' '+amount:amount;const j={...d,status:'Open'};if(form.dataset.id){delete j.status;await mutate('jobs','?id=eq.'+form.dataset.id,'PATCH',j);Object.assign(state.jobs.find(j=>j.id===form.dataset.id),j)}else{Object.assign(j,{id:id(),owner_id:state.user.id,created_at:new Date().toISOString()});await mutate('jobs','','POST',j);state.jobs.unshift(j)}closeModal();state.route='hire';toast(state.demo?'Opportunity saved in this preview only.':'Opportunity saved.')}else if(form.id==='applyform'){const j=state.jobs.find(j=>j.id===form.dataset.id);if(j.owner_id===state.user.id)throw new Error('You cannot apply to your own job.');if(j.status!=='Open')throw new Error('This opportunity is closed.');if(state.applications.some(a=>a.job_id===j.id&&a.applicant_id===state.user.id))throw new Error('You have already applied to this opportunity.');const ap={id:id(),job_id:j.id,applicant_id:state.user.id,applicant_name:state.profile.full_name,cover_note:d.cover_note.trim(),status:'Pending',created_at:new Date().toISOString()};await mutate('applications','','POST',ap);state.applications.unshift(ap);closeModal();toast('Application submitted.')}else if(form.id==='commentform'){return addComment(form,d.body.trim())}else if(form.id==='reportform'){await mutate('reports','','POST',{reporter_id:state.user.id,target:form.dataset.target,reason:d.reason,details:d.details});closeModal();toast(state.demo?'Report demonstrated. No moderation team was contacted.':'Report received for review.')}else if(form.classList.contains('statusform')){await mutate('applications','?id=eq.'+form.dataset.id,'PATCH',{status:d.status});const ap=state.applications.find(a=>a.id===form.dataset.id);if(ap)ap.status=d.status;toast('Application status updated.');rerender=false}else if(form.id==='messageform'){const m={id:id(),conversation_id:form.dataset.id,sender_id:state.user.id,body:d.body.trim(),created_at:new Date().toISOString()};if(!m.body)throw new Error('Write a message first.');await mutate('messages','','POST',m);state.messages.push(m);return action('thread',m.conversation_id)}if(rerender)render()}
 document.addEventListener('pointerdown', () => { pointerMotion = true; });
 document.addEventListener('keydown', () => { pointerMotion = false; });
