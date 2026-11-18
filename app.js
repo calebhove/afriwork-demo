@@ -451,7 +451,7 @@ async function recordPostShare(postId) {
   updatePostCount(postId, 'shares', rows?.length || 0);
 }
 
-function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header><p>${esc(p.body)}</p>${state.demo&&p.photos?.length?`${p.photos.length>1?`<div class="composer-gallery-nav">${act('postslide','← Previous photo','btn outline small','-1')}${act('postslide','Next photo →','btn outline small','1')}</div>`: ''}<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}" style="object-position:${esc(p.photoPositions?.[index] || 'center')}">`).join('')}</div>`:''}${postActions(p)}</article>`}
+function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header>${p.body ? `<p class="post-caption">${esc(p.body)}</p>` : ''}${state.demo&&p.photos?.length?`${p.photos.length>1?`<div class="composer-gallery-nav">${act('postslide','← Previous photo','btn outline small','-1')}${act('postslide','Next photo →','btn outline small','1')}</div>`: ''}<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}" style="object-position:${esc(p.photoPositions?.[index] || 'center')}">`).join('')}</div>`:''}${postActions(p)}</article>`}
 function filteredJobs(){return state.jobs.filter(j=>j.status==='Open'&&(!state.onlySaved||state.saved.includes(j.id))&&(!state.query||[j.title,j.company_name,j.category,j.description,j.city].join(' ').toLowerCase().includes(state.query.toLowerCase()))&&(!state.filter.category||j.category===state.filter.category)&&(!state.filter.arrangement||j.arrangement===state.filter.arrangement)&&(!state.filter.type||j.type===state.filter.type))}
 const jobCurrencies = {
   USD: 'US$', ZAR: 'R', NGN: '₦', ZWG: 'ZiG', BWP: 'P', ZMW: 'ZK',
@@ -878,7 +878,7 @@ function openPostComposer(media) {
     ${act('postmedia','<strong>GIF</strong>','composer-tool','gif')}
   ` : '';
   modal('New post', `<form id="postform">
-    <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong><button type="submit" class="btn composer-publish">Post</button></div>
+    <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong><button type="submit" class="btn composer-publish">${icon('share')}<span>Post</span></button></div>
     <label class="sr" for="body">Post text</label>
     <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea></div>
     ${state.demo ? `<input id="postphotos" type="file" accept="image/*" multiple hidden>
