@@ -880,7 +880,7 @@ function openPostComposer(media) {
   modal('New post', `<form id="postform">
     <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong><button type="submit" class="btn composer-publish">${icon('share')}<span>Post</span></button></div>
     <label class="sr" for="body">Post text</label>
-    <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea></div>
+    <textarea id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea></div>
     ${state.demo ? `<input id="postphotos" type="file" accept="image/*" multiple hidden>
     <div class="post-photo-preview" hidden>
       <div class="composer-gallery-nav" hidden>
