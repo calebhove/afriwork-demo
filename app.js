@@ -158,7 +158,7 @@ function render() {
         <footer>${act('policy','Terms','','Terms')}${act('policy','Privacy','','Privacy')}<br>${act('policy','Safety','','Safety')}${act('policy','Job rules','','Job rules')}<br>© ${new Date().getFullYear()} Afriwork</footer>
       </aside>
       <main class="content">
-        <nav class="primary-tabs" aria-label="Explore Afriwork">
+        <nav class="primary-tabs${['profile','messages'].includes(state.route)?' section-nav-hidden':''}" aria-label="Explore Afriwork">
           ${[['feed','Feed','home'],['jobs','Jobs','jobs'],['hire','Hire','hire']].map(([route,label,glyph]) => nav(route,label,glyph)).join('')}
         </nav>
         ${mainView()}
