@@ -4,6 +4,7 @@ const icons={home:'M3 10l9-7 9 7v11h-6v-7H9v7H3z',jobs:'M8 6V3h8v3M3 7h18v14H3z 
 Object.assign(icons, {
   settings: 'M9.5 2h5l.6 2.6 1.8 1 2.6-.8 2.5 4.4-2 1.8v2l2 1.8-2.5 4.4-2.6-.8-1.8 1-.6 2.6h-5l-.6-2.6-1.8-1-2.6.8L2 14.8 4 13v-2L2 9.2l2.5-4.4 2.6.8 1.8-1L9.5 2z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
   share: 'M22 2 9 15 M22 2l-7 20-4-9-9-4 20-7z',
+  photos: 'M3 4h18v16H3z M3 16l5-5 4 4 4-5 5 6 M8 8h.01',
   edit: 'M4 20l4-1 12-12-3-3L5 16l-1 4z M15 6l3 3',
   camera: 'M3 7h4l2-3h6l2 3h4v14H3z M16 13a4 4 0 1 1-8 0a4 4 0 0 1 8 0',
   chart: 'M4 20h16 M7 16v-5 M12 16V5 M17 16V8',
@@ -23,7 +24,7 @@ function initials(n){return (n||'You').split(' ').map(s=>s[0]).slice(0,2).join('
 function act(action, label, className = '', value = '') {
   const accessibleNames = { savejob: 'Save job', filters: 'Filter jobs', close: 'Close' };
   const accessibleName = accessibleNames[action];
-  return `<button class="${className}" data-action="${action}" data-value="${esc(value)}"${accessibleName ? ` aria-label="${accessibleName}"` : ''}>${label}</button>`;
+  return `<button type="button" class="${className}" data-action="${action}" data-value="${esc(value)}"${accessibleName ? ` aria-label="${accessibleName}"` : ''}>${label}</button>`;
 }
 const regionNames = new Intl.DisplayNames(['en'], {type:'region'});
 const countries = 'AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW'.split(' ').map(code => ({
@@ -227,6 +228,7 @@ function previewPostPhotos(input) {
       preview.querySelector('.post-photos').append(frame);
     }
     preview.hidden = !files.length;
+    preview.querySelector('.composer-gallery-nav').hidden = files.length < 2;
   } catch (failure) {
     error.textContent = errorMessage(failure);
   }
@@ -449,7 +451,7 @@ async function recordPostShare(postId) {
   updatePostCount(postId, 'shares', rows?.length || 0);
 }
 
-function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header><p>${esc(p.body)}</p>${state.demo&&p.photos?.length?`<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}" style="object-position:${esc(p.photoPositions?.[index] || 'center')}">`).join('')}</div>`:''}${postActions(p)}</article>`}
+function postCard(p){return `<article class="card post"><header><div class="avatar">${esc(initials(p.author_name))}</div><div><strong>${esc(p.author_name)}</strong><small>${new Date(p.created_at).toLocaleDateString()} · Professional update</small></div>${p.author_id===state.user.id?act('delpost','Delete','link',p.id):act('report','Report','link','post:'+p.id)}</header><p>${esc(p.body)}</p>${state.demo&&p.photos?.length?`${p.photos.length>1?`<div class="composer-gallery-nav">${act('postslide','← Previous photo','btn outline small','-1')}${act('postslide','Next photo →','btn outline small','1')}</div>`: ''}<div class="post-photos">${p.photos.map((url,index)=>`<img src="${esc(url)}" alt="Post photo ${index+1}" style="object-position:${esc(p.photoPositions?.[index] || 'center')}">`).join('')}</div>`:''}${postActions(p)}</article>`}
 function filteredJobs(){return state.jobs.filter(j=>j.status==='Open'&&(!state.onlySaved||state.saved.includes(j.id))&&(!state.query||[j.title,j.company_name,j.category,j.description,j.city].join(' ').toLowerCase().includes(state.query.toLowerCase()))&&(!state.filter.category||j.category===state.filter.category)&&(!state.filter.arrangement||j.arrangement===state.filter.arrangement)&&(!state.filter.type||j.type===state.filter.type))}
 const jobCurrencies = {
   USD: 'US$', ZAR: 'R', NGN: '₦', ZWG: 'ZiG', BWP: 'P', ZMW: 'ZK',
@@ -869,16 +871,62 @@ async function addComment(form, body) {
   form.reset();
   form.querySelector('[role="status"]').textContent = 'Comment posted.';
 }
-async function action(a,v){if(a==='close')return closeModal();if(a==='home'){state.route='feed';state.feedTab='For You';render();window.scrollTo(0,0);return;}if(a==='countries')return modal('Choose your country',`<label for="country-search">Search countries</label><input id="country-search" type="search" placeholder="Search countries"><div class="country-options">${countries.map(({name,flag})=>act('countrychoose',flag+' '+esc(name),'country-option',name)).join('')}</div>`);
-if(a==='countrychoose'){const field=$('#country');if(field){field.value=v;field.dispatchEvent(new Event('input',{bubbles:true}));}return closeModal();}
-if(a==='policy')return modal(v,policies[v]);if(a==='screen'){state.screen=v;return render()}if(a==='demo'){state.demo=true;state.screen='onboarding';state.onboard=0;state.user={id:id()};return render()}if(a==='exitdemo'||a==='logout'){if(token)try{await request('/auth/v1/logout',{method:'POST'})}catch{}token=null;location.reload();return}if(a==='role'){state.draft.role=v;return render()}if(a==='obback'){captureOnboard(new FormData($('#onboardform')));state.onboard--;return render()}if(a==='nav'){const changed=state.route!==v;state.route=v;render();if(changed)animateEntrance($('.content'),4,170);return}if(a==='feedtab'){state.feedTab=v;return render()}if(a==='create')return modal('Create',`<div class="stack">${act('post','Take a picture','choice','camera')}${act('post','Choose photos','choice','photos')}${act('post','Write a text post','choice')}${act('newjob','Post a job, project or local gig','choice')}</div>`);
-if(a==='post'){
-  const photos=v==='camera'||v==='photos';
-  return modal(photos?'New photo post':'New post',`<form id="postform">
+function openPostComposer(media) {
+  const toolbar = state.demo ? `
+    ${act('postmedia',icon('photos')+'<span>Photos</span>','composer-tool','photos')}
+    ${act('postmedia',icon('camera')+'<span>Camera</span>','composer-tool','camera')}
+    ${act('postmedia','<strong>GIF</strong>','composer-tool','gif')}
+  ` : '';
+  modal('New post', `<form id="postform">
     <div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong></div>
-    ${photos?(state.demo?`<label class="composer-upload" for="postphotos">${icon('camera')} ${v==='camera'?'Open camera':'Choose photos'}</label><input id="postphotos" type="file" accept="image/*" ${v==='camera'?'capture="environment"':'multiple'} required><div class="post-photo-preview" hidden><small>Swipe to frame each photo.</small><div class="post-photos"></div></div><p class="muted">Photos stay in this preview session.</p>`:'<p class="notice">Photo posting is available in browser preview while shared photo storage is being built.</p>'):''}
-    <label for="body">${photos?'Caption':'Your update'}</label><textarea id="body" name="body" placeholder="${photos?'Write a caption…':'What’s new?'}" maxlength="5000" ${photos?'':'required'}></textarea>
-    <p class="error" role="alert"></p><div class="composer-footer"><button class="btn wide" ${photos&&!state.demo?'disabled':''}>Publish post</button></div></form>`, 'post-composer');
+    <label class="sr" for="body">Post text</label>
+    <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea>
+    ${state.demo ? `<input id="postphotos" type="file" accept="image/*" multiple hidden>
+    <div class="post-photo-preview" hidden>
+      <div class="composer-gallery-nav" hidden>
+        ${act('postslide','← Previous photo','btn outline small','-1')}
+        ${act('postslide','Next photo →','btn outline small','1')}
+      </div>
+      <div class="post-photos"></div>
+    </div>` : ''}
+    <p class="error" role="alert"></p>
+    <div class="composer-footer">
+      <div class="composer-tools" role="group" aria-label="Post tools">
+        ${toolbar}<details class="composer-stickers"><summary>☺ Emoji</summary>
+          <div>${['👏','🔥','🎉','💼','🙌','❤️'].map(value=>act('poststicker',value,'composer-tool',value)).join('')}</div>
+        </details>
+        ${act('newjob',icon('jobs')+'<span>Hire</span>','composer-tool')}
+      </div>
+      <button type="submit" class="btn wide">Publish post</button>
+    </div>
+  </form>`, 'post-composer');
+  if (state.demo && (media==='photos' || media==='camera')) action('postmedia',media);
+}
+
+async function action(a,v,control){if(a==='close')return closeModal();if(a==='home'){state.route='feed';state.feedTab='For You';render();window.scrollTo(0,0);return;}if(a==='countries')return modal('Choose your country',`<label for="country-search">Search countries</label><input id="country-search" type="search" placeholder="Search countries"><div class="country-options">${countries.map(({name,flag})=>act('countrychoose',flag+' '+esc(name),'country-option',name)).join('')}</div>`);
+if(a==='countrychoose'){const field=$('#country');if(field){field.value=v;field.dispatchEvent(new Event('input',{bubbles:true}));}return closeModal();}
+if(a==='policy')return modal(v,policies[v]);if(a==='screen'){state.screen=v;return render()}if(a==='demo'){state.demo=true;state.screen='onboarding';state.onboard=0;state.user={id:id()};return render()}if(a==='exitdemo'||a==='logout'){if(token)try{await request('/auth/v1/logout',{method:'POST'})}catch{}token=null;location.reload();return}if(a==='role'){state.draft.role=v;return render()}if(a==='obback'){captureOnboard(new FormData($('#onboardform')));state.onboard--;return render()}if(a==='nav'){const changed=state.route!==v;state.route=v;render();if(changed)animateEntrance($('.content'),4,170);return}if(a==='feedtab'){state.feedTab=v;return render()}if(a==='create')return openPostComposer();
+if(a==='post')return openPostComposer(v);
+if(a==='postmedia'){
+  const input=$('#postphotos');
+  input.accept=v==='gif'?'image/gif':'image/*';
+  input.toggleAttribute('capture',v==='camera');
+  if(v==='camera')input.setAttribute('capture','environment');
+  input.multiple=v==='photos';
+  input.click();
+  return;
+}
+if(a==='poststicker'){
+  const body=$('#postform textarea');
+  body.setRangeText(v,body.selectionStart,body.selectionEnd,'end');
+  body.focus();
+  return;
+}
+if(a==='postslide'){
+  const gallery=control?.closest('.post, #postform')?.querySelector('.post-photos');
+  if (!gallery) return;
+  gallery.scrollBy({left:Number(v)*(gallery.clientWidth+8)});
+  return;
 }
 if(a==='editmedia')return editProfileImage(v);
 if(a==='editprofile')return editProfile();if(a==='newjob')return jobForm();if(a==='saved'){state.onlySaved=!state.onlySaved;return render()}if(a==='filters')return modal('Find the right fit.',`<form id="filterform">${select('category','Category',['',...categories],state.filter.category)}${select('type','Opportunity type',['','Full-time','Part-time','Contract','Temporary','Internship','Freelance','Local gig'],state.filter.type)}${select('arrangement','Arrangement',['','On-site','Hybrid','Remote'],state.filter.arrangement)}<button class="btn wide" style="margin-top:20px">Apply filters</button></form>`);
@@ -952,7 +1000,7 @@ $('#modal').addEventListener('cancel', event => {
   event.preventDefault();
   closeModal();
 });
-document.addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b)return;e.preventDefault();if(b.disabled)return;b.disabled=true;try{await action(b.dataset.action,b.dataset.value)}catch(err){toast(errorMessage(err))}finally{b.disabled=false}});
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b)return;e.preventDefault();if(b.disabled)return;b.disabled=true;try{await action(b.dataset.action,b.dataset.value,b)}catch(err){toast(errorMessage(err))}finally{b.disabled=false}});
 document.addEventListener('click', event => {
   const button = event.target.closest('[data-skill-group], [data-skill]');
   if (!button) return;
@@ -994,7 +1042,7 @@ document.addEventListener('submit', async event => {
   event.preventDefault();
   const form = event.target;
   if (form.dataset.pending) return;
-  const button = form.querySelector('button:not([data-action])');
+  const button = form.querySelector('button[type=submit], button:not([data-action])');
   const error = form.querySelector('.error');
   const commentInput = form.id === 'commentform' ? form.elements.body : null;
   form.dataset.pending = 'true';
