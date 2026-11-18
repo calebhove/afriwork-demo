@@ -897,7 +897,7 @@ function openPostComposer(media) {
         </details>
         ${act('newjob',icon('jobs')+'<span>Hire</span>','composer-tool')}
       </div>
-      <button type="submit" class="btn wide">Publish post</button>
+      <button type="submit" class="btn">Post</button>
     </div>
   </form>`, 'post-composer');
   if (state.demo && (media==='photos' || media==='camera')) action('postmedia',media);
