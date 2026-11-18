@@ -878,7 +878,7 @@ function openPostComposer(media) {
     ${act('postmedia','<strong>GIF</strong>','composer-tool','gif')}
   ` : '';
   modal('New post', `<form id="postform">
-    <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong></div>
+    <div class="composer-editor"><div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong><button type="submit" class="btn composer-publish">Post</button></div>
     <label class="sr" for="body">Post text</label>
     <textarea autofocus id="body" name="body" placeholder="What’s new?" maxlength="5000"></textarea></div>
     ${state.demo ? `<input id="postphotos" type="file" accept="image/*" multiple hidden>
@@ -892,12 +892,11 @@ function openPostComposer(media) {
     <p class="error" role="alert"></p>
     <div class="composer-footer">
       <div class="composer-tools" role="group" aria-label="Post tools">
-        ${toolbar}<details class="composer-stickers"><summary>☺ Emoji</summary>
+        ${toolbar}<details class="composer-stickers"><summary><span aria-hidden="true">☺</span> Emoji</summary>
           <div>${['👏','🔥','🎉','💼','🙌','❤️'].map(value=>act('poststicker',value,'composer-tool',value)).join('')}</div>
         </details>
         ${act('newjob',icon('jobs')+'<span>Hire</span>','composer-tool')}
       </div>
-      <button type="submit" class="btn">Post</button>
     </div>
   </form>`, 'post-composer');
   if (state.demo && (media==='photos' || media==='camera')) action('postmedia',media);
