@@ -292,49 +292,23 @@ if(form.id==='searchform'||form.id==='jobsearch'){state.query=d.query.trim();sta
 if(files.length>10||files.some(file=>!file.type.startsWith('image/')||file.size>10*1024*1024))throw new Error('Choose up to 10 images, each under 10 MB.');
 if(files.length&&state.demo)p.photos=files.map(file=>URL.createObjectURL(file));
 if(!p.body&&!p.photos?.length)throw new Error('Write something or add a photo.');await mutate('posts','','POST',p);state.posts.unshift(p);state.route='feed';state.feedTab='For You';closeModal();toast(state.demo?'Post added to this preview session.':'Post published.')}else if(form.id==='profileform'){if(d.website&&safeURL(d.website)==='#')throw new Error('Use a valid https:// or http:// link.');const patch={...d};if(typeof d.skills==='string')patch.skills=d.skills.split(',').map(x=>x.trim()).filter(Boolean);await mutate('profiles','?id=eq.'+state.user.id,'PATCH',patch);Object.assign(state.profile,patch);closeModal();toast('Profile updated.')}else if(form.id==='jobform'){if(sensitive.includes(d.category))throw new Error('This category requires identity review, which is not available yet.');if(d.description.trim().length<30)throw new Error('Add a description of at least 30 characters.');delete d.rules;const j={...d,status:'Open'};if(form.dataset.id){delete j.status;await mutate('jobs','?id=eq.'+form.dataset.id,'PATCH',j);Object.assign(state.jobs.find(j=>j.id===form.dataset.id),j)}else{Object.assign(j,{id:id(),owner_id:state.user.id,created_at:new Date().toISOString()});await mutate('jobs','','POST',j);state.jobs.unshift(j)}closeModal();state.route='hire';toast(state.demo?'Opportunity saved in this preview only.':'Opportunity saved.')}else if(form.id==='applyform'){const j=state.jobs.find(j=>j.id===form.dataset.id);if(j.owner_id===state.user.id)throw new Error('You cannot apply to your own job.');if(j.status!=='Open')throw new Error('This opportunity is closed.');if(state.applications.some(a=>a.job_id===j.id&&a.applicant_id===state.user.id))throw new Error('You have already applied to this opportunity.');const ap={id:id(),job_id:j.id,applicant_id:state.user.id,applicant_name:state.profile.full_name,cover_note:d.cover_note.trim(),status:'Pending',created_at:new Date().toISOString()};await mutate('applications','','POST',ap);state.applications.unshift(ap);closeModal();toast('Application submitted.')}else if(form.id==='commentform'){const c={id:id(),post_id:form.dataset.id,author_id:state.user.id,author_name:state.profile.full_name,body:d.body.trim(),created_at:new Date().toISOString()};if(!c.body)throw new Error('Write a comment first.');await mutate('comments','','POST',c);(state.comments||=[]).push(c);return action('comments',c.post_id)}else if(form.id==='reportform'){await mutate('reports','','POST',{reporter_id:state.user.id,target:form.dataset.target,reason:d.reason,details:d.details});closeModal();toast(state.demo?'Report demonstrated. No moderation team was contacted.':'Report received for review.')}else if(form.classList.contains('statusform')){await mutate('applications','?id=eq.'+form.dataset.id,'PATCH',{status:d.status});const ap=state.applications.find(a=>a.id===form.dataset.id);if(ap)ap.status=d.status;toast('Application status updated.');rerender=false}else if(form.id==='messageform'){const m={id:id(),conversation_id:form.dataset.id,sender_id:state.user.id,body:d.body.trim(),created_at:new Date().toISOString()};if(!m.body)throw new Error('Write a message first.');await mutate('messages','','POST',m);state.messages.push(m);return action('thread',m.conversation_id)}if(rerender)render()}
-// Mobile navigation is based on document scroll, not the rendered feed's scroll position.
-let mobileLastY=window.scrollY, mobileDistance=0, mobileDirection=0;
+// Direction-aware mobile navigation: collapse while reading, reveal on deliberate upward scroll.
+let navPreviousY=window.scrollY, navTravel=0, navDirection=0;
 window.addEventListener('scroll',()=>{
-  if(state.screen!=='app'||window.innerWidth>760||$('#modal').open)return;
-  const y=Math.max(0,window.scrollY), diff=y-mobileLastY;
-  mobileLastY=y;
-  if(y<55){document.body.classList.remove('nav-collapsed');mobileDistance=0;return;}
-  if(Math.abs(diff)<1)return;
-  const dir=Math.sign(diff);
-  if(dir!==mobileDirection){mobileDirection=dir;mobileDistance=0;}
-  mobileDistance+=Math.abs(diff);
-  if(mobileDistance>=12){
-    document.body.classList.toggle('nav-collapsed',dir>0);
-    mobileDistance=0;
+  const y=Math.max(0,window.scrollY);
+  const delta=y-navPreviousY;
+  navPreviousY=y;
+  if(state.screen!=='app'||innerWidth>760||$('#modal').open)return;
+  if(y<75){document.body.classList.remove('nav-collapsed');navTravel=0;return;}
+  if(Math.abs(delta)<1)return;
+  const direction=Math.sign(delta);
+  if(direction!==navDirection){navDirection=direction;navTravel=0;}
+  navTravel+=Math.abs(delta);
+  if(navTravel>=24){
+    document.body.classList.toggle('nav-collapsed',direction>0);
+    navTravel=0;
   }
 },{passive:true});
-
-// iOS Safari fallback: react to vertical finger movement even when scroll events are delayed.
-let mobileTouchY=null, mobileTouchX=null, mobileTouchDirection=0;
-document.addEventListener('touchstart',e=>{
-  if(e.touches.length!==1){mobileTouchY=null;return;}
-  mobileTouchY=e.touches[0].clientY;
-  mobileTouchX=e.touches[0].clientX;
-  mobileTouchDirection=0;
-},{passive:true});
-document.addEventListener('touchmove',e=>{
-  if(mobileTouchY===null||state.screen!=='app'||innerWidth>760||$('#modal').open)return;
-  if(e.touches.length!==1)return;
-  const y=e.touches[0].clientY,x=e.touches[0].clientX;
-  const dy=y-mobileTouchY,dx=x-mobileTouchX;
-  if(Math.abs(dx)>Math.abs(dy)*1.2)return;
-  if(Math.abs(dy)<16)return;
-  if(window.scrollY>55){
-    const dir=Math.sign(dy);
-    if(dir!==mobileTouchDirection){
-      document.body.classList.toggle('nav-collapsed',dir<0);
-      mobileTouchDirection=dir;
-    }
-  }else document.body.classList.remove('nav-collapsed');
-  mobileTouchY=y;mobileTouchX=x;
-},{passive:true});
-document.addEventListener('touchend',()=>{mobileTouchY=null;},{passive:true});
-document.addEventListener('touchcancel',()=>{mobileTouchY=null;},{passive:true});
 
 // Gesture ownership: post galleries always own horizontal drags.
 // Outside galleries, horizontal swipes switch feed categories without hijacking vertical scroll.
