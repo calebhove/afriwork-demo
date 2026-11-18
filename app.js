@@ -196,9 +196,18 @@ function previewPostPhotos(input) {
       image.src = url;
       image.alt = 'Photo ' + (index + 1) + ' preview';
       const frame = document.createElement('div');
-      frame.style.cssText = 'flex:0 0 100%;min-width:0;scroll-snap-align:start';
+      frame.className = 'composer-photo';
+      const count = document.createElement('span');
+      count.className = 'composer-photo-count';
+      count.textContent = (index + 1) + ' / ' + files.length;
+      frame.append(count);
       frame.append(image);
       const position = {horizontal: '50', vertical: '50'};
+      const controls = document.createElement('div');
+      controls.className = 'composer-crop';
+      const title = document.createElement('strong');
+      title.textContent = 'Adjust crop';
+      controls.append(title);
       for (const axis of Object.keys(position)) {
         const label = document.createElement('label');
         label.textContent = axis === 'horizontal' ? 'Left / right' : 'Up / down';
@@ -212,8 +221,9 @@ function previewPostPhotos(input) {
           image.style.objectPosition = position.horizontal + '% ' + position.vertical + '%';
         });
         label.append(slider);
-        frame.append(label);
+        controls.append(label);
       }
+      frame.append(controls);
       preview.querySelector('.post-photos').append(frame);
     }
     preview.hidden = !files.length;
@@ -864,10 +874,11 @@ if(a==='countrychoose'){const field=$('#country');if(field){field.value=v;field.
 if(a==='policy')return modal(v,policies[v]);if(a==='screen'){state.screen=v;return render()}if(a==='demo'){state.demo=true;state.screen='onboarding';state.onboard=0;state.user={id:id()};return render()}if(a==='exitdemo'||a==='logout'){if(token)try{await request('/auth/v1/logout',{method:'POST'})}catch{}token=null;location.reload();return}if(a==='role'){state.draft.role=v;return render()}if(a==='obback'){captureOnboard(new FormData($('#onboardform')));state.onboard--;return render()}if(a==='nav'){const changed=state.route!==v;state.route=v;render();if(changed)animateEntrance($('.content'),4,170);return}if(a==='feedtab'){state.feedTab=v;return render()}if(a==='create')return modal('Create',`<div class="stack">${act('post','Take a picture','choice','camera')}${act('post','Choose photos','choice','photos')}${act('post','Write a text post','choice')}${act('newjob','Post a job, project or local gig','choice')}</div>`);
 if(a==='post'){
   const photos=v==='camera'||v==='photos';
-  return modal(photos?'Create a photo post':'Write a post',`<form id="postform">
-    ${photos?(state.demo?`<label for="postphotos">${v==='camera'?'Open camera':'Choose up to 10 photos'}</label><input id="postphotos" type="file" accept="image/*" ${v==='camera'?'capture="environment"':'multiple'} required><div class="post-photo-preview" hidden><small>Adjust the framing before posting. Swipe to edit each photo.</small><div class="post-photos"></div></div><p class="muted">Photos stay in this preview session.</p>`:'<p class="notice">Photo posting is available in browser preview while shared photo storage is being built.</p>'):''}
-    <label for="body">${photos?'Caption':'Your update'}</label><textarea id="body" name="body" maxlength="5000" ${photos?'':'required'}></textarea>
-    <p class="error" role="alert"></p><button class="btn wide" ${photos&&!state.demo?'disabled':''}>Publish post</button></form>`);
+  return modal(photos?'New photo post':'New post',`<form id="postform">
+    <div class="composer-author"><span class="avatar">${esc(initials(profileName(state.profile)))}</span><strong>${esc(profileName(state.profile))}</strong></div>
+    ${photos?(state.demo?`<label class="composer-upload" for="postphotos">${icon('camera')} ${v==='camera'?'Open camera':'Choose photos'}</label><input id="postphotos" type="file" accept="image/*" ${v==='camera'?'capture="environment"':'multiple'} required><div class="post-photo-preview" hidden><small>Swipe to frame each photo.</small><div class="post-photos"></div></div><p class="muted">Photos stay in this preview session.</p>`:'<p class="notice">Photo posting is available in browser preview while shared photo storage is being built.</p>'):''}
+    <label for="body">${photos?'Caption':'Your update'}</label><textarea id="body" name="body" placeholder="${photos?'Write a caption…':'What’s new?'}" maxlength="5000" ${photos?'':'required'}></textarea>
+    <p class="error" role="alert"></p><div class="composer-footer"><button class="btn wide" ${photos&&!state.demo?'disabled':''}>Publish post</button></div></form>`, 'post-composer');
 }
 if(a==='editmedia')return editProfileImage(v);
 if(a==='editprofile')return editProfile();if(a==='newjob')return jobForm();if(a==='saved'){state.onlySaved=!state.onlySaved;return render()}if(a==='filters')return modal('Find the right fit.',`<form id="filterform">${select('category','Category',['',...categories],state.filter.category)}${select('type','Opportunity type',['','Full-time','Part-time','Contract','Temporary','Internship','Freelance','Local gig'],state.filter.type)}${select('arrangement','Arrangement',['','On-site','Hybrid','Remote'],state.filter.arrangement)}<button class="btn wide" style="margin-top:20px">Apply filters</button></form>`);
