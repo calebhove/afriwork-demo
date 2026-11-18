@@ -531,7 +531,7 @@ dialog { position: fixed; inset: 0; margin: auto; max-height: 88dvh; overflow: a
 }
 @media(prefers-reduced-motion:reduce){.header,.primary-tabs{transition:none!important}}
 
-.composer-author { display: flex; align-items: center; gap: 10px; margin: 4px 0 16px; }
+.composer-author { display: flex; align-items: center; gap: 10px; margin: 0 0 4px; }
 .composer-upload { display: flex; align-items: center; gap: 8px; color: var(--brand-text); }
 .post-composer input[type="file"] { background: var(--paper); }
 .composer-photo { flex: 0 0 100%; min-width: 0; position: relative; scroll-snap-align: start; }
@@ -540,20 +540,23 @@ dialog { position: fixed; inset: 0; margin: auto; max-height: 88dvh; overflow: a
 .composer-crop { padding: 12px 14px; margin-top: 8px; border-radius: 12px; background: var(--paper); }
 .composer-crop label { margin: 6px 0 0; }
 .composer-crop input[type="range"] { display: block; padding: 0; min-height: 30px; accent-color: var(--brand-text); }
-.post-composer #body { min-height: 100px; }
-.post-composer .error:empty { display: none; }
-.composer-footer { padding-top: 12px; }
 
-.post-composer #body { min-height: 155px; border: 0; padding: 10px 2px; resize: vertical; }
-.composer-tools { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.post-composer .error:empty { display: none; }
+.composer-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; padding-top: 8px; border-top: 1px solid var(--line); }
+.composer-footer > .btn { width: auto; margin-left: auto; }
+.post-composer .modalhead { align-items: center; margin-bottom: 8px; }
+.post-composer .modalhead h2 { margin: 0; font-size: 19px; }
+
+.post-composer #body { min-height: 112px; border: 0; padding: 8px 2px; display: block; resize: vertical; }
+.composer-tools { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
 .composer-tool, .composer-stickers summary { min-height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; border-radius: 10px; color: var(--brand-text); cursor: pointer; }
 .composer-stickers > div { display: flex; flex-wrap: wrap; }
 .composer-gallery-nav:not([hidden]) { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
 .post-photo-preview .post-photos { touch-action: pan-x pan-y; }
 @media (max-width: 760px) {
-  dialog.post-composer { inset: 0; width: 100%; height: 100%; max-height: 100dvh; max-width: none; border-radius: 0; margin: 0; }
-  .post-composer #body { min-height: 32dvh; }
-  .composer-footer { position: sticky; bottom: -20px; padding-bottom: max(12px, env(safe-area-inset-bottom)); background: var(--white); border-top: 1px solid var(--line); }
+  dialog.post-composer { inset: auto 0 0; width: 100%; max-height: 92dvh; max-width: none; border-radius: 20px 20px 0 0; margin: 0; padding: 12px 14px max(12px, env(safe-area-inset-bottom)); }
+  .post-composer .composer-tools .icon { width: 18px; height: 18px; }
+  .composer-footer .btn { min-height: 44px; padding-inline: 14px; }
 }
 
 .post-photos { min-width: 0; max-width: 100%; }
