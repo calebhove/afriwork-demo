@@ -613,3 +613,17 @@ dialog.post-composer { padding: 16px; }
   .post-composer .composer-footer { position: relative; }
   .post-composer .composer-stickers > div { position: absolute; inset: auto 0 100% auto; max-width: 100%; background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 4px; z-index: 1; }
 }
+
+/* Keep each photo strip independently scrollable on narrow screens. */
+.card.post { grid-template-columns: minmax(0, 1fr); }
+.post-photos {
+  width: 100%;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior-inline: contain;
+}
+.post-photos > img, .post-photos > .composer-photo { flex: 0 0 100%; min-width: 0; }
+.composer-photo > img { width: 100%; }
+.composer-gallery-nav:not([hidden]) { display: flex; }
