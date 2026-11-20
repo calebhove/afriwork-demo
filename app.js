@@ -698,12 +698,12 @@ async function verificationView() {
       const blocked = ['pending', 'approved'].includes(current?.status);
       return `<section class="card">
         <h3>${verificationKind(kind)}</h3>
-        <p class="muted">${verificationStatuses[current?.status] || 'No request yet'}</p>
+        <p role="status"><strong>${verificationStatuses[current?.status] || 'No request yet'}</strong></p>
         ${current?.reason ? `<p class="verification-note">${esc(current.reason)}</p>` : ''}
         ${blocked ? '' : act('submitverification', current ? 'Submit a new sample' : 'Submit a test sample', 'btn outline', kind)}
       </section>`;
     }).join('')}</div>
-    ${roles.length ? act('verificationqueue', state.demo ? 'Try the reviewer queue' : 'Open reviewer queue', 'btn verification-queue-link') : ''}`);
+    ${roles.length ? act('verificationqueue', state.demo ? 'Review test requests' : 'Open reviewer queue', 'btn verification-queue-link') : ''}`);
 }
 
 async function submitVerification(kind) {
@@ -783,8 +783,10 @@ async function saveVerificationDecision(requestId, status, reason) {
     const rows = await db('verification_requests', '?id=eq.' + encodeURIComponent(requestId) + '&status=eq.pending', 'PATCH', decision);
     if (!rows?.length) throw new Error('This request has already been reviewed or you lack permission.');
   }
-  await verificationQueue();
-  toast('Test decision saved.');
+  if (state.demo) return verificationView();
+  modal('Decision saved', `<p role="status"><strong>${verificationStatuses[status]}</strong></p>
+    ${note ? `<p>${esc(note)}</p>` : ''}
+    ${act('verificationqueue', 'Back to reviewer queue', 'btn')}`);
 }
 
 function settingsView() {
